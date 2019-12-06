@@ -1,0 +1,18 @@
+[Unit]
+Description=Zomboid Server
+After=cloud-final.service
+
+[Service]
+EnvironmentFile=/etc/zomboid/zomboid-environment
+ExecStart=/home/steam/projectzomboid/start-server.sh -servername ${SERVER_NAME} -adminpassword ${ADMIN_PASSWORD}
+ExecStop=/usr/local/bin/rcon-cli --password ${RCON_PASSWORD} quit
+WorkingDirectory=/home/steam/projectzomboid
+Restart=on-failure
+Type=simple
+User=steam
+ProtectHome=read-only
+ReadWritePaths=/home/steam/Zomboid
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

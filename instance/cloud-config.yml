@@ -1,0 +1,18 @@
+#cloud-config
+repo_update: true
+repo_upgrade: security
+package_upgrade: true
+packages:
+  - nvme-cli
+  - awscli
+runcmd:
+  - export DEBIAN_FRONTEND=noninteractive
+  - echo "steamcmd steam/license note" | debconf-set-selections
+  - echo "steamcmd steam/question select I AGREE" | debconf-set-selections
+  - dpkg --add-architecture i386 && apt-get update && apt-get -y install lib32gcc1 steamcmd
+  - curl -L "https://github.com/itzg/rcon-cli/releases/download/${rcon_cli_version}/rcon-cli_${rcon_cli_version}_linux_amd64.tar.gz" -o /opt/rcon-cli.tar.gz
+  - tar -C /usr/local/bin -x -f /opt/rcon-cli.tar.gz rcon-cli && chmod +x /usr/local/bin/rcon-cli
+  - adduser --disabled-login --gecos "Steam" --home /home/steam steam
+  - mkdir -p /home/steam/Zomboid/Server
+  - chown steam. -R /home/steam/
+  - sudo -u steam /usr/games/steamcmd +login anonymous +force_install_dir /home/steam/projectzomboid/ +app_update ${zomboid_app_id} -validate +quit
