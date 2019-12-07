@@ -3,7 +3,7 @@ Description=Zomboid Server
 After=cloud-final.service
 
 [Service]
-EnvironmentFile=/etc/zomboid/zomboid-environment
+EnvironmentFile=/etc/zomboid/environment
 ExecStart=/home/steam/projectzomboid/start-server.sh -servername ${SERVER_NAME} -adminpassword ${ADMIN_PASSWORD}
 ExecStop=/usr/local/bin/rcon-cli --password ${RCON_PASSWORD} quit
 WorkingDirectory=/home/steam/projectzomboid

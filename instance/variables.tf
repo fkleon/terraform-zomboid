@@ -39,6 +39,11 @@ variable "ssh_private_key" {
   description = "SSH private key to use for file provisioning."
 }
 
+variable "bucket_name" {
+  type        = string
+  description = "S3 bucket to use for save game backups."
+}
+
 variable "instance_profile" {
   type        = string
   default     = "zomboid-instance-profile"

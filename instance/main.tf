@@ -13,6 +13,7 @@ provider "template" {
 
 locals {
   server_name = "pzserver"
+  save_game_dir = "/home/steam/Zomboid"
   rcon_cli_version = "1.4.7"
   # Should match the value in server.ini
   rcon_password = "rcon"
@@ -111,7 +112,7 @@ resource "aws_instance" "zomboid" {
     delete_on_termination = true
   }
 
-  #iam_instance_profile = var.instance_profile
+  iam_instance_profile = var.instance_profile
 
   key_name        = aws_key_pair.key.key_name
   user_data       = data.template_file.cloud_config.rendered
@@ -124,9 +125,13 @@ resource "aws_instance" "zomboid" {
 
   provisioner "file" {
     content     = <<ENV
+# Server settings
 SERVER_NAME=${local.server_name}
 ADMIN_PASSWORD=${var.admin_password}
 RCON_PASSWORD=${local.rcon_password}
+# Backup settings
+S3_BUCKET=${var.bucket_name}
+SAVE_GAME_DIR=${local.save_game_dir}
 ENV
     destination = "/tmp/zomboid-environment"
   }
@@ -136,27 +141,30 @@ ENV
     inline = [
       "set -e",
       "sudo cloud-init status --wait > /dev/null 2>&1",
-      "sudo install -m 644 -o root -g root /tmp/zomboid-environment -D -t /etc/zomboid",
+      "sudo install -m 644 -o root -g root /tmp/zomboid-environment -D /etc/zomboid/environment",
       "sudo install -m 644 -o root -g root /tmp/conf/zomboid-headless.service /etc/systemd/system",
+      "sudo install -m 644 -o root -g root /tmp/conf/zomboid-backup.service /etc/systemd/system",
+      "sudo install -m 644 -o root -g root /tmp/conf/zomboid-restore.service /etc/systemd/system",
       "sudo install -m 644 -o steam -g steam /tmp/conf/server.ini -D /home/steam/Zomboid/Server/${local.server_name}.ini",
       "sudo systemctl daemon-reload",
     ]
   }
 
-  # Start headless server.
+  # Restore save games from S3 and start headless server.
   provisioner "remote-exec" {
     inline = [
       "set -e",
       "sudo cloud-init status --wait > /dev/null 2>&1",
-      "sudo systemctl start zomboid-headless.service",
+      "sudo systemctl start zomboid-restore.service && sudo systemctl start zomboid-headless.service",
     ]
   }
 
-  # Stop headless server.
+  # Stop headless server and backup save games to S3 on destroy.
   provisioner "remote-exec" {
     when = destroy
     inline = [
       "sudo systemctl stop zomboid-headless.service",
+      "sudo systemctl start zomboid-backup.service",
     ]
   }
 

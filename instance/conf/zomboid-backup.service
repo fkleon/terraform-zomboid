@@ -1,0 +1,18 @@
+[Unit]
+Description=Zomboid Backup
+After=cloud-final.service
+
+[Service]
+EnvironmentFile=/etc/zomboid/environment
+ExecStartPre=/usr/bin/mkdir /tmp/zomboid-backup
+ExecStartPre=/usr/bin/tar cfz /tmp/zomboid-backup/Zomboid.tar.gz .
+ExecStart=/usr/bin/aws s3 sync /tmp/zomboid-backup/ s3://${S3_BUCKET}/saves
+WorkingDirectory=/home/steam/Zomboid
+Restart=no
+Type=oneshot
+User=steam
+ProtectHome=read-only
+ReadOnlyPaths=/home/steam/Zomboid
+PrivateTmp=true
+
+[Install]
