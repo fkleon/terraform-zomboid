@@ -146,6 +146,7 @@ ENV
       "sudo install -m 644 -o root -g root /tmp/conf/zomboid-backup.service /etc/systemd/system",
       "sudo install -m 644 -o root -g root /tmp/conf/zomboid-restore.service /etc/systemd/system",
       "sudo install -m 644 -o steam -g steam /tmp/conf/server.ini -D /home/steam/Zomboid/Server/${local.server_name}.ini",
+      "sudo install -m 644 -o steam -g steam /tmp/conf/server_SandboxVars.lua -D /home/steam/Zomboid/Server/${local.server_name}_SandboxVars.lua",
       "sudo systemctl daemon-reload",
     ]
   }
